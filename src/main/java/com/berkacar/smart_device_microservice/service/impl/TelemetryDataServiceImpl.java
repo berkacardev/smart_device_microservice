@@ -6,20 +6,20 @@ import com.berkacar.smart_device_microservice.exception.exceptions.TelemetryData
 import com.berkacar.smart_device_microservice.repository.TelemetryDataRepository;
 import com.berkacar.smart_device_microservice.repository.entity.TelemetryData;
 import com.berkacar.smart_device_microservice.response.TelemetryDataResponse;
-import com.berkacar.smart_device_microservice.service.TelemetryDataService;
+import com.berkacar.smart_device_microservice.service.TelemetryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class TelemetryDataServiceImpl implements TelemetryDataService {
+public class TelemetryServiceImpl implements TelemetryService {
 
     private final TelemetryDataRepository telemetryDataRepository;
 
 
     @Autowired
-    public TelemetryDataServiceImpl(TelemetryDataRepository telemetryDataRepository) {
+    public TelemetryServiceImpl(TelemetryDataRepository telemetryDataRepository) {
         this.telemetryDataRepository = telemetryDataRepository;
     }
 
