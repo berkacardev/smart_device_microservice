@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nullable;
@@ -74,15 +73,15 @@ public class FlagServiceImpl implements FlagService {
                     .baseUrl("http://192.168.1.200")
                     .clientConnector(new ReactorClientHttpConnector(HttpClient.create().responseTimeout(Duration.ofSeconds(10))))
                     .build();
-            Mono<String> responseMono = webClient.get()
+            String response = webClient.get()
                     .uri("/process/run_grinder")
                     .retrieve()
-                    .bodyToMono(String.class);
-            responseMono.subscribe(
-                    result -> flagDataRepository.updateFlag(smartDeviceFlag),
-                    error -> flagDataRepository.updateFlag(smartDeviceFlag));
-        } catch (Exception ignored) {
-
+                    .bodyToMono(String.class)
+                    .block();
+            flagDataRepository.updateFlag(smartDeviceFlag);
+        } catch (Exception e) {
+            flagDataRepository.updateFlag(smartDeviceFlag);
+            System.err.println(e.getMessage());
         }
     }
     private void giveWarningSound(SmartDeviceFlag smartDeviceFlag) {
@@ -91,15 +90,16 @@ public class FlagServiceImpl implements FlagService {
                     .baseUrl("http://192.168.1.200")
                     .clientConnector(new ReactorClientHttpConnector(HttpClient.create().responseTimeout(Duration.ofSeconds(10))))
                     .build();
-            Mono<String> responseMono = webClient.get()
+            String response = webClient.get()
                     .uri("/process/give_warning_sound")
                     .retrieve()
-                    .bodyToMono(String.class);
-            responseMono.subscribe(
-                    result -> flagDataRepository.updateFlag(smartDeviceFlag),
-                    error -> flagDataRepository.updateFlag(smartDeviceFlag));
-        } catch (Exception ignored) {
+                    .bodyToMono(String.class)
+                    .block();
+            flagDataRepository.updateFlag(smartDeviceFlag);
 
+        } catch (Exception e) {
+            flagDataRepository.updateFlag(smartDeviceFlag);
+            System.err.println(e.getMessage());
         }
 
     }
