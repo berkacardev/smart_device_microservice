@@ -20,6 +20,7 @@ public class SocketService {
                     socketIOClient.getNamespace().getAllClients().forEach(client -> {
                         if (!client.getSessionId().equals(socketIOClient.getSessionId())) {
                             client.sendEvent("get_flag_request", message);
+
                         }
                     });
                 });

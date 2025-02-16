@@ -1,6 +1,7 @@
 package com.berkacar.smart_device_microservice.service.impl;
 
 import com.berkacar.smart_device_microservice.repository.FlagDataRepository;
+import com.berkacar.smart_device_microservice.repository.entity.SmartDeviceFlag;
 import com.berkacar.smart_device_microservice.response.FlagResponse;
 import com.berkacar.smart_device_microservice.service.FlagService;
 import com.berkacar.smart_device_microservice.service.SocketService;
@@ -9,9 +10,14 @@ import com.google.cloud.firestore.EventListener;
 import com.google.cloud.firestore.FirestoreException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 @Slf4j
 @Service
@@ -44,9 +50,57 @@ public class FlagServiceImpl implements FlagService {
                             .runGrinder(runGrinder)
                             .build();
                     socketService.sendToAllClients(flagResponse);
+                    SmartDeviceFlag smartDeviceFlag = SmartDeviceFlag.builder()
+                            .deviceId(deviceId)
+                            .giveWarningSound(flagResponse.isGiveWarningSound())
+                            .runGrinder(flagResponse.isRunGrinder())
+                            .build();
+                    if (runGrinder) {
+                        smartDeviceFlag.setRunGrinder(!smartDeviceFlag.isRunGrinder());
+                        runGrinder(smartDeviceFlag);
+                    }
+                    if (giveWarningSound) {
+                        smartDeviceFlag.setGiveWarningSound(!smartDeviceFlag.isGiveWarningSound());
+                        giveWarningSound(smartDeviceFlag);
+                    }
                 }
             }
-
         });
+    }
+
+    private void runGrinder(SmartDeviceFlag smartDeviceFlag) {
+        try {
+            WebClient webClient = WebClient.builder()
+                    .baseUrl("http://192.168.1.200")
+                    .clientConnector(new ReactorClientHttpConnector(HttpClient.create().responseTimeout(Duration.ofSeconds(10))))
+                    .build();
+            Mono<String> responseMono = webClient.get()
+                    .uri("/process/run_grinder")
+                    .retrieve()
+                    .bodyToMono(String.class);
+            responseMono.subscribe(
+                    result -> flagDataRepository.updateFlag(smartDeviceFlag),
+                    error -> flagDataRepository.updateFlag(smartDeviceFlag));
+        } catch (Exception ignored) {
+
+        }
+    }
+    private void giveWarningSound(SmartDeviceFlag smartDeviceFlag) {
+        try {
+            WebClient webClient = WebClient.builder()
+                    .baseUrl("http://192.168.1.200")
+                    .clientConnector(new ReactorClientHttpConnector(HttpClient.create().responseTimeout(Duration.ofSeconds(10))))
+                    .build();
+            Mono<String> responseMono = webClient.get()
+                    .uri("/process/give_warning_sound")
+                    .retrieve()
+                    .bodyToMono(String.class);
+            responseMono.subscribe(
+                    result -> flagDataRepository.updateFlag(smartDeviceFlag),
+                    error -> flagDataRepository.updateFlag(smartDeviceFlag));
+        } catch (Exception ignored) {
+
+        }
+
     }
 }
