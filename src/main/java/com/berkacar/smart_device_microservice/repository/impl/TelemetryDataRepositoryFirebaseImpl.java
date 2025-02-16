@@ -36,10 +36,10 @@ public class TelemetryDataRepositoryFirebaseImpl implements TelemetryDataReposit
             telemetryDataMap.put("percent_fullness_by_weight", telemetryData.getPercentFullnessByWeight());
             telemetryDataMap.put("temperature", telemetryData.getTemperature());
             telemetryDataMap.put("weight", telemetryData.getWeight());
-            telemetryDataMap.put("data_time",savedDateTime);
+            telemetryDataMap.put("data_time", savedDateTime);
 
-            WriteResult docRef = firestore.
-                    collection("smart_devices")
+            WriteResult docRef = firestore
+                    .collection("smart_devices")
                     .document(telemetryData.getDeviceId())
                     .collection("telemetry_data")
                     .document(String.valueOf(System.currentTimeMillis()))

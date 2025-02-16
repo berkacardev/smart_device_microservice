@@ -1,4 +1,5 @@
 package com.berkacar.smart_device_microservice.service;
 
-public class FlagService {
+public interface FlagService {
+    void startFlagService(String deviceId);
 }
